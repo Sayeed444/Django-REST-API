@@ -7,7 +7,11 @@ from rest_framework import status
 
 # Create your views here.
 def home(request):
-    return render(request,'home/home.html')
+    products = Product.objects.all()
+    context ={
+        'products':products
+    }
+    return render(request,'home/home.html',context)
 
 @api_view(['GET','POST'])
 def product(request):
@@ -23,16 +27,18 @@ def product(request):
         return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
 
 
-@api_view(['GET','PUT'])
+@api_view(['GET','PUT','DELETE'])
 def product_detail(request,pk):
     try:
         list = Product.objects.get(id=pk)
 
     except Product.DoesNotExist:
         return Response(status= status.HTTP_400_BAD_REQUEST)
+
     if request.method == 'GET':
         serializer = ProductSerializer(list)
         return Response(serializer.data)
+
     elif request.method == 'PUT':
         serializer = ProductSerializer(list,data=request.data)
         if serializer.is_valid():
@@ -40,3 +46,6 @@ def product_detail(request,pk):
             return Response(serializer.data)
         return Response(serializer.errors,status= status.HTTP_400_BAD_REQUEST)
 
+    elif request.method == 'DELETE':
+        list.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
